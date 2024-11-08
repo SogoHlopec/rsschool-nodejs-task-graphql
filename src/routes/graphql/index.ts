@@ -25,10 +25,6 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         variableValues: variables,
         contextValue: { prisma },
       });
-
-    //   console.log('GraphQL запрос:', query);
-    //   console.log('Переменные:', variables);
-    //   console.log('Результат запроса:', result);
       return result;
     },
   });
