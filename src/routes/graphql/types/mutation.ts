@@ -64,6 +64,53 @@ export const RootMutationType = new GraphQLObjectType({
       },
     },
 
+    subscribeTo: {
+      type: GraphQLString,
+      args: {
+        userId: { type: new GraphQLNonNull(UUIDType) },
+        authorId: { type: new GraphQLNonNull(UUIDType) },
+      },
+      resolve: async (
+        parent,
+        args: { userId: string; authorId: string },
+        context: Context,
+      ) => {
+        const prisma: PrismaClient = context.prisma;
+
+        await prisma.subscribersOnAuthors.create({
+          data: {
+            subscriberId: args.userId,
+            authorId: args.authorId,
+          },
+        });
+
+        return `User ${args.userId} subscribed to author ${args.authorId}`;
+      },
+    },
+
+    unsubscribeFrom: {
+      type: GraphQLString,
+      args: {
+        userId: { type: new GraphQLNonNull(UUIDType) },
+        authorId: { type: new GraphQLNonNull(UUIDType) },
+      },
+      resolve: async (
+        parent,
+        args: { userId: string; authorId: string },
+        context: Context,
+      ) => {
+        const prisma: PrismaClient = context.prisma;
+        await prisma.subscribersOnAuthors.deleteMany({
+          where: {
+            subscriberId: args.userId,
+            authorId: args.authorId,
+          },
+        });
+
+        return `User ${args.userId} unsubscribed from author ${args.authorId}`;
+      },
+    },
+
     createPost: {
       type: PostType,
       args: {
