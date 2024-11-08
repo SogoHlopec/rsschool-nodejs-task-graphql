@@ -11,9 +11,9 @@ import { ProfileType } from './profile.js';
 import { Context } from './query.js';
 import { PostType } from './post.js';
 
-export const UserType = new GraphQLObjectType({
+export const UserType: GraphQLObjectType = new GraphQLObjectType({
   name: 'UserType',
-  fields: {
+  fields: () => ({
     id: { type: new GraphQLNonNull(UUIDType) },
     name: { type: new GraphQLNonNull(GraphQLString) },
     balance: { type: new GraphQLNonNull(GraphQLFloat) },
@@ -27,6 +27,7 @@ export const UserType = new GraphQLObjectType({
         return profile || null;
       },
     },
+
     posts: {
       type: new GraphQLList(PostType),
       resolve: async (parent: { id: string }, args, context: Context) => {
@@ -36,5 +37,33 @@ export const UserType = new GraphQLObjectType({
         });
       },
     },
-  },
+
+    userSubscribedTo: {
+      type: new GraphQLList(UserType),
+      resolve: async (parent, args, context: Context) => {
+        const prisma: PrismaClient = context.prisma;
+        const subscriptions = await prisma.subscribersOnAuthors.findMany({
+          where: { subscriberId: parent.id },
+          include: {
+            author: true,
+          },
+        });
+        return subscriptions.map((sub) => sub.author);
+      },
+    },
+
+    subscribedToUser: {
+      type: new GraphQLList(UserType),
+      resolve: async (parent, args, context: Context) => {
+        const prisma: PrismaClient = context.prisma;
+        const subscriptions = await prisma.subscribersOnAuthors.findMany({
+          where: { authorId: parent.id },
+          include: {
+            subscriber: true,
+          },
+        });
+        return subscriptions.map((sub) => sub.subscriber);
+      },
+    },
+  }),
 });
