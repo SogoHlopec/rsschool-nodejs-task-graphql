@@ -1,8 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { GraphQLNonNull, GraphQLObjectType, GraphQLString } from 'graphql';
-import { CreateUserInput, UserType } from './user.js';
-import { CreatePostInput, PostType } from './post.js';
-import { CreateProfileInput, ProfileType } from './profile.js';
+import { ChangeUserInput, CreateUserInput, UserType } from './user.js';
+import { ChangePostInput, CreatePostInput, PostType } from './post.js';
+import { ChangeProfileInput, CreateProfileInput, ProfileType } from './profile.js';
 import { UUIDType } from './uuid.js';
 
 export type Context = {
@@ -44,6 +44,26 @@ export const RootMutationType = new GraphQLObjectType({
       },
     },
 
+    changeUser: {
+      type: UserType,
+      args: {
+        id: { type: new GraphQLNonNull(UUIDType) },
+        dto: { type: new GraphQLNonNull(ChangeUserInput) },
+      },
+      resolve: async (
+        parent,
+        args: { id: string; dto: { name?: string; balance?: number } },
+        context: Context,
+      ) => {
+        const prisma: PrismaClient = context.prisma;
+        const updatedUser = await prisma.user.update({
+          where: { id: args.id },
+          data: args.dto,
+        });
+        return updatedUser;
+      },
+    },
+
     createPost: {
       type: PostType,
       args: {
@@ -73,6 +93,26 @@ export const RootMutationType = new GraphQLObjectType({
           where: { id: args.id },
         });
         return `Post ${args.id} deleted`;
+      },
+    },
+
+    changePost: {
+      type: PostType,
+      args: {
+        id: { type: new GraphQLNonNull(UUIDType) },
+        dto: { type: new GraphQLNonNull(ChangePostInput) },
+      },
+      resolve: async (
+        parent,
+        args: { id: string; dto: { title?: string; content?: string } },
+        context: Context,
+      ) => {
+        const prisma: PrismaClient = context.prisma;
+        const updatedPost = await prisma.post.update({
+          where: { id: args.id },
+          data: args.dto,
+        });
+        return updatedPost;
       },
     },
 
@@ -112,6 +152,29 @@ export const RootMutationType = new GraphQLObjectType({
           where: { id: args.id },
         });
         return `Profile ${args.id} deleted`;
+      },
+    },
+
+    changeProfile: {
+      type: ProfileType,
+      args: {
+        id: { type: new GraphQLNonNull(UUIDType) },
+        dto: { type: new GraphQLNonNull(ChangeProfileInput) },
+      },
+      resolve: async (
+        parent,
+        args: {
+          id: string;
+          dto: { isMale?: boolean; yearOfBirth?: number; memberTypeId?: string };
+        },
+        context: Context,
+      ) => {
+        const prisma: PrismaClient = context.prisma;
+        const updatedProfile = await prisma.profile.update({
+          where: { id: args.id },
+          data: args.dto,
+        });
+        return updatedProfile;
       },
     },
   },
